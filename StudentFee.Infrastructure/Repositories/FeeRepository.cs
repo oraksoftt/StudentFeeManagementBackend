@@ -19,14 +19,17 @@ public class FeeRepository : IFeeRepository
         using var connection = _connectionFactory.CreateConnection();
 
         const string sql = """
-                            SELECT 
-                                s.id as StudentID,
-                                s.Name as StudentName,
-                                f.*
-                            FROM Fees f
-                            INNER JOIN Students s ON f.StudentID = s.id
-                            ORDER BY f.PaymentDate DESC
-                            """;
+            SELECT
+                f.id,
+                f.studentid,
+                s.name AS studentname,
+                f.amount,
+                f.paymentdate::text,
+                f.remarks
+            FROM fees f
+            INNER JOIN students s ON f.studentid = s.id
+            ORDER BY f.paymentdate DESC
+            """;
 
         return await connection.QueryAsync<FeeList>(sql);
     }
@@ -37,8 +40,8 @@ public class FeeRepository : IFeeRepository
 
         const string sql = """
             SELECT *
-            FROM Fees
-            WHERE Id = @Id
+            FROM fees
+            WHERE id = @Id
             """;
 
         return await connection.QueryFirstOrDefaultAsync<Fee>(
@@ -51,13 +54,13 @@ public class FeeRepository : IFeeRepository
         using var connection = _connectionFactory.CreateConnection();
 
         const string sql = """
-            INSERT INTO Fees
+            INSERT INTO fees
             (
-                Id,
-                StudentId,
-                Amount,
-                PaymentDate,
-                Remarks
+                id,
+                studentid,
+                amount,
+                paymentdate,
+                remarks
             )
             VALUES
             (
@@ -79,12 +82,12 @@ public class FeeRepository : IFeeRepository
         using var connection = _connectionFactory.CreateConnection();
 
         const string sql = """
-            UPDATE Fees
+            UPDATE fees
             SET
-                Amount = @Amount,
-                PaymentDate = @PaymentDate,
-                Remarks = @Remarks
-            WHERE Id = @Id
+                amount = @Amount,
+                paymentdate = @PaymentDate,
+                remarks = @Remarks
+            WHERE id = @Id
             """;
 
         var affectedRows =
@@ -98,8 +101,8 @@ public class FeeRepository : IFeeRepository
         using var connection = _connectionFactory.CreateConnection();
 
         const string sql = """
-            DELETE FROM Fees
-            WHERE Id = @Id
+            DELETE FROM fees
+            WHERE id = @Id
             """;
 
         var affectedRows =

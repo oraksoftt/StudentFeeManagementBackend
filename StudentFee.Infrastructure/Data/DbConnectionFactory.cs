@@ -1,6 +1,7 @@
-﻿using System.Data;
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Npgsql;
+using System.Data;
 
 namespace StudentFee.Infrastructure.Data;
 
@@ -15,6 +16,7 @@ public class DbConnectionFactory
 
     public IDbConnection CreateConnection()
     {
-        return new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+        return new NpgsqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+        //return new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
     }
 }

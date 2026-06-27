@@ -21,8 +21,8 @@ public class StudentRepository : IStudentRepository
 
         const string sql = """
             SELECT *
-            FROM Students
-            ORDER BY CreatedAt DESC
+            FROM students
+            ORDER BY createdat DESC
             """;
 
         return await connection.QueryAsync<Student>(sql);
@@ -34,8 +34,8 @@ public class StudentRepository : IStudentRepository
 
         const string sql = """
             SELECT *
-            FROM Students
-            WHERE Id = @Id
+            FROM students
+            WHERE id = @Id
             """;
 
         return await connection.QueryFirstOrDefaultAsync<Student>(
@@ -48,13 +48,13 @@ public class StudentRepository : IStudentRepository
         using var connection = _connectionFactory.CreateConnection();
 
         const string sql = """
-            INSERT INTO Students
+            INSERT INTO students
             (
-                Id,
-                Name,
-                Email,
-                Phone,
-                CreatedAt
+                id,
+                name,
+                email,
+                phone,
+                createdat
             )
             VALUES
             (
@@ -76,12 +76,12 @@ public class StudentRepository : IStudentRepository
         using var connection = _connectionFactory.CreateConnection();
 
         const string sql = """
-            UPDATE Students
+            UPDATE students
             SET
-                Name = @Name,
-                Email = @Email,
-                Phone = @Phone
-            WHERE Id = @Id
+                name = @Name,
+                email = @Email,
+                phone = @Phone
+            WHERE id = @Id
             """;
 
         var affectedRows =
@@ -95,8 +95,8 @@ public class StudentRepository : IStudentRepository
         using var connection = _connectionFactory.CreateConnection();
 
         const string sql = """
-            DELETE FROM Students
-            WHERE Id = @Id
+            DELETE FROM students
+            WHERE id = @Id
             """;
 
         var affectedRows =
@@ -104,18 +104,19 @@ public class StudentRepository : IStudentRepository
 
         return affectedRows > 0;
     }
+
     public async Task<StudentWithFeesDto?> GetStudentWithFeesAsync(Guid id)
     {
         using var connection = _connectionFactory.CreateConnection();
 
-        var sql = """
+        const string sql = """
         SELECT 
-            s.Id, s.Name, s.Email, s.Phone,
-            f.Id, f.Amount, f.PaymentDate, f.Remarks
-        FROM Students s
-        LEFT JOIN Fees f ON s.Id = f.StudentId
-        WHERE s.Id = @Id
-    """;
+            s.id, s.name, s.email, s.phone,
+            f.id, f.amount, f.paymentdate, f.remarks
+        FROM students s
+        LEFT JOIN fees f ON s.id = f.studentid
+        WHERE s.id = @Id
+        """;
 
         var studentDict = new Dictionary<Guid, StudentWithFeesDto>();
 
@@ -136,23 +137,24 @@ public class StudentRepository : IStudentRepository
                 return current;
             },
             new { Id = id },
-            splitOn: "Id"
+            splitOn: "id"
         );
 
         return result.FirstOrDefault();
-
     }
+
     public async Task<PagedResult<Student>> GetPagedAsync(int page, int pageSize)
     {
         using var connection = _connectionFactory.CreateConnection();
 
-        var sql = """
-        SELECT COUNT(*) FROM Students;
+        const string sql = """
+        SELECT COUNT(*) FROM students;
 
-        SELECT * FROM Students
-        ORDER BY CreatedAt DESC
-        OFFSET @Skip ROWS FETCH NEXT @Take ROWS ONLY;
-    """;
+        SELECT *
+        FROM students
+        ORDER BY createdat DESC
+        LIMIT @Take OFFSET @Skip;
+        """;
 
         using var multi = await connection.QueryMultipleAsync(sql, new
         {
@@ -168,17 +170,17 @@ public class StudentRepository : IStudentRepository
             TotalCount = total,
             Items = items
         };
-
     }
+
     public async Task<IEnumerable<Student>> SearchAsync(string keyword)
     {
         using var connection = _connectionFactory.CreateConnection();
 
         const string sql = """
-        SELECT * FROM Students
-        WHERE Name LIKE '%' + @Keyword + '%'
-        OR Email LIKE '%' + @Keyword + '%'
-    """;
+        SELECT * FROM students
+        WHERE name ILIKE '%' || @Keyword || '%'
+        OR email ILIKE '%' || @Keyword || '%'
+        """;
 
         return await connection.QueryAsync<Student>(sql, new { Keyword = keyword });
     }
