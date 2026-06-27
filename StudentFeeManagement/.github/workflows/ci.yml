@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main", "master", "develop" ]
+  pull_request:
+    branches: [ "main", "master", "develop" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-packages-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            nuget-packages-${{ runner.os }}-
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build (Release)
+        run: dotnet build --no-restore --configuration Release --nologo
+
+      - name: Run tests (if any)
+        run: |
+          if ls **/*Tests*.csproj 1> /dev/null 2>&1; then
+            echo "Test projects found. Running tests..."
+            dotnet test --no-build --configuration Release --verbosity normal
+          else
+            echo "No test projects found, skipping tests."
+          fi
+
+      - name: Publish release artifact
+        if: success()
+        run: |
+          mkdir -p ./artifacts
+          dotnet publish --no-build --configuration Release -o ./artifacts
+        # optionally upload artifact (uncomment if you want)
+      # - name: Upload artifacts
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: published-app
+      #     path: ./artifacts
