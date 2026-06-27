@@ -31,15 +31,15 @@ jobs:
       - name: Test
         run: dotnet test StudentFeeManagement.sln --no-build --verbosity normal
 
-      # --- NEW STEPS FOR AZURE DEPLOYMENT ---
+      # --- AZURE DEPLOYMENT STEPS ---
 
-      # 1. Compile and publish the Web API project output to a temporary staging folder
+      # 1. Publish the Web API project that actually exists in the solution.
+      # Because `defaults.run.working-directory` is StudentFeeManagement, this run executes in that folder.
       - name: Publish API
-        run: dotnet publish StudentFeeManagement.Api/StudentFeeManagement.Api.csproj -c Release -o ./publish
-        # Note: Replace "StudentFeeManagement.Api/StudentFeeManagement.Api.csproj" with the 
-        # actual path to your main Web API entry project inside your folder structure.
+        run: dotnet publish StudentFee.API.csproj -c Release -o ./publish
 
-      # 2. Deploy the published files directly to Azure using your GitHub Secret
+      # 2. Deploy the published files directly to Azure.
+      # `uses` steps do not inherit the `defaults.run.working-directory`, so the package path is relative to the repo root.
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
