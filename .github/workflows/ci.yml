@@ -35,7 +35,7 @@ jobs:
 
       # 1. Compile and publish the Web API project output to a temporary staging folder
       - name: Publish API
-        run: dotnet publish ./StudentFeeManagement.Api/StudentFeeManagement.Api.csproj -c Release -o ./publish
+        run: dotnet publish StudentFeeManagement.Api/StudentFeeManagement.Api.csproj -c Release -o ./publish
         # Note: Replace "StudentFeeManagement.Api/StudentFeeManagement.Api.csproj" with the 
         # actual path to your main Web API entry project inside your folder structure.
 
