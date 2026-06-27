@@ -23,10 +23,10 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Restore dependencies
-        run: dotnet restore StudentFeeManagement.sln
+        run: dotnet restore StudentFeeManagement/StudentFeeManagement.sln
 
       - name: Build
-        run: dotnet build StudentFeeManagement.sln --no-restore
+        run: dotnet build StudentFeeManagement/StudentFeeManagement.sln --no-restore
 
       - name: Test
-        run: dotnet test StudentFeeManagement.sln --no-build --verbosity normal
+        run: dotnet test StudentFeeManagement/StudentFeeManagement.sln --no-build --verbosity normal
