@@ -33,16 +33,43 @@ jobs:
 
       # --- AZURE DEPLOYMENT STEPS ---
 
-      # 1. Publish the Web API project that actually exists in the solution.
-      # Because `defaults.run.working-directory` is StudentFeeManagement, this run executes in that folder.
+      # Publish the Web API project that is present in the solution
       - name: Publish API
         run: dotnet publish StudentFee.API.csproj -c Release -o ./publish
 
-      # 2. Deploy the published files directly to Azure.
-      # `uses` steps do not inherit the `defaults.run.working-directory`, so the package path is relative to the repo root.
+      # Validate the publish profile matches the target App Service name (studentfeemgmt)
+      - name: Validate Azure publish profile matches App Service
+        env:
+          PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        run: |
+          APP_NAME="studentfeemgmt"
+          if [ -z "$PUBLISH_PROFILE" ]; then
+            echo "ERROR: AZURE_WEBAPP_PUBLISH_PROFILE secret is missing or empty."
+            exit 1
+          fi
+          echo "$PUBLISH_PROFILE" > publish_profile.xml
+          # Find msdeploySite or siteName attribute value
+          MSDEPLOY_SITE=$(grep -oP 'msdeploySite="\K[^"]+' publish_profile.xml | head -n1 || true)
+          if [ -z "$MSDEPLOY_SITE" ]; then
+            MSDEPLOY_SITE=$(grep -oP 'siteName="\K[^"]+' publish_profile.xml | head -n1 || true)
+          fi
+          echo "Publish profile target site: '$MSDEPLOY_SITE'"
+          if [ -z "$MSDEPLOY_SITE" ]; then
+            echo "ERROR: Could not determine target site from publish profile. Ensure the uploaded publish profile XML is correct."
+            exit 1
+          fi
+          # Allow either exact match or matches the pattern for a slot (e.g., myapp(slotname))
+          if [ "$MSDEPLOY_SITE" != "$APP_NAME" ] && [[ "$MSDEPLOY_SITE" != "$APP_NAME"* ]]; then
+            echo "ERROR: Publish profile target ('$MSDEPLOY_SITE') does not match expected App Service name ('$APP_NAME')."
+            echo "Download the publish profile for the App Service named '$APP_NAME' from the Azure Portal and save it to the AZURE_WEBAPP_PUBLISH_PROFILE secret."
+            exit 1
+          fi
+          echo "Publish profile matches '$APP_NAME'. Proceeding."
+
+      # Deploy to Azure using the publish profile
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'your-azure-webapp-name' # Replace with your exact Azure Web App name
+          app-name: studentfeemgmt
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: ./StudentFeeManagement/publish
