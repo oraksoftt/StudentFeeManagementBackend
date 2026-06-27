@@ -1,41 +1,32 @@
-name:  .NET Core Clean Architecture  Deployment CI
+name: .NET CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
   pull_request:
-    branches:
-      - main
-      
+    branches: [ "main" ]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: StudentFeeManagement
+
     steps:
+      - uses: actions/checkout@v4
 
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup .NET SDK
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0'
+          dotnet-version: 8.0.x
 
-      - name: Restore Packages
+      - name: Restore dependencies
         run: dotnet restore StudentFeeManagement.sln
 
-      - name: Build Solution
-        run: dotnet build StudentFeeManagement.sln --configuration Release --no-restore
-
-     # - name: Run Tests
-     #   run: dotnet test StudentFeeManagement.sln --configuration Release --no-build --verbosity normal
-
-     # - name: Publish API
-     #   run: dotnet publish src/StudentFee.API/StudentFee.API.csproj -c Release -o publish
-         
+      - name: Build
+        run: dotnet build StudentFeeManagement.sln --no-restore
 
       - name: Test
         run: dotnet test StudentFeeManagement.sln --no-build --verbosity normal
