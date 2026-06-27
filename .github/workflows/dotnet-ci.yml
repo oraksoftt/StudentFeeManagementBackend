@@ -30,8 +30,12 @@ jobs:
       - name: Build Solution
         run: dotnet build StudentFeeManagement.sln --configuration Release --no-restore
 
-      - name: Run Tests
-        run: dotnet test StudentFeeManagement.sln --configuration Release --no-build --verbosity normal
+     # - name: Run Tests
+     #   run: dotnet test StudentFeeManagement.sln --configuration Release --no-build --verbosity normal
 
-      - name: Publish API
-        run: dotnet publish src/StudentFee.API/StudentFee.API.csproj -c Release -o publish
+     # - name: Publish API
+     #   run: dotnet publish src/StudentFee.API/StudentFee.API.csproj -c Release -o publish
+         
+
+      - name: Test
+        run: dotnet test StudentFeeManagement.sln --no-build --verbosity normal
